@@ -2,19 +2,20 @@ import sqlite3
 from datetime import datetime
 from datetime import timedelta
 import math
-import lists
+from .lists import rewards
 
 class DiscordDb:
     """Class for handling all database communication"""
     def __init__(self):
-        self.conn = sqlite3.connect('discord.db')
+        self.conn = sqlite3.connect('cogs/func/discord.db')
         self.cur  = self.conn.cursor()
 
         # cool vars and stuff
         self.START_MONEY =  1000
         self.ALLOWANCE   =  250
         self.MINIMUM     = -50 # allow debt of 50 money
-        self.MAXIMUM     =  0 #in this case, 0 means
+        self.MAXIMUM     =  0 #in this case, 0 means that there is no maxium.
+        self.REWARDS     = rewards
 
     def is_user(self, uid : int):
         if self.get_balance is not None:
@@ -118,8 +119,8 @@ class DiscordDb:
         last = self.cur.fetchone()
         claimed = datetime.strptime(last[0][:19], "%Y-%m-%d %H:%M:%S")
 
-        if datetime.now()>claimed + timedelta(hours=60): #it's been 20 hours since their last claim
-            self.add_money(uid, lists.rewards[rid])
+        if datetime.now()>claimed + timedelta(hours=20): #it's been 20 hours since their last claim
+            self.add_money(uid, self.REWARDS[rid])
             data = (datetime.now(),uid,)
             self.cur.execute("UPDATE money SET claimed=? WHERE uid=?", data) #update last claimed column
             self.conn.commit()

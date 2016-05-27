@@ -50,9 +50,13 @@ class VoiceState:
             await self.bot.change_status(game=None)
             self.play_next_song.clear()
             self.current = await self.songs.get()
-            await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
-            print(str(self.current.player.title))
-            await self.bot.change_status(game=discord.Game(name=str(self.current.player.title), url="https://www.youtube.com", type=1))
+            if self.current.player.title!="caramelldansen 10 hour swedish loop":
+                await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+                print(str("playing {0}".format(self.current.player.title)))
+                await self.bot.change_status(game=discord.Game(name=str(self.current.player.title), url="https://www.youtube.com", type=1))
+            else:
+                await self.bot.send_message(self.current.channel, 'THE PARTY HAS STARTED! :D')
+                await self.bot.change_status(game=discord.Game(name="TECHNO PARTY!!!", url="https://www.youtube.com", type=1))
             self.current.player.start()
             await self.play_next_song.wait()
 
@@ -219,6 +223,27 @@ class Music:
             await self.bot.say('You have already voted to skip this song.')
 
     @commands.command(pass_context=True, no_pm=True)
+    async def technoparty(self, ctx):
+        state = self.get_voice_state(ctx.message.server)
+        opts = {
+            'default_search': 'auto',
+            'quiet': True,
+        }
+        if state.voice is None:
+            success = await ctx.invoke(self.summon)
+            if not success:
+                return
+        try:
+            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=brwS_ZmVaRc", ytdl_options=opts, after=state.toggle_next)
+        except Exception as e:
+            fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
+            await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
+        else:
+            player.volume = self.song_volume
+            entry = VoiceEntry(ctx.message, player, self.song_volume)
+            await state.songs.put(entry)
+
+    @commands.command(pass_context=True, no_pm=True)
     async def playing(self, ctx):
         """Shows info about the currently played song."""
 
@@ -227,7 +252,10 @@ class Music:
             await self.bot.say('Not playing anything.')
         else:
             skip_count = len(state.skip_votes)
-            await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current, skip_count))
+            if state.current.player.title!="caramelldansen 10 hour swedish loop":
+                await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current, skip_count))
+            else:
+                await self.bot.say("There is a 10-hour techno party on! ( ﾉ^ω^)ﾉ [skips:{0}/3]".format(skip_count))
 
 
 def setup(bot):

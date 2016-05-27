@@ -1,12 +1,18 @@
 import asyncio
 import discord
 from discord.ext import commands
-import random
-from .helper import *
+import random, datetime
+from .func.helper import *
+from .func import lists
 
 class Fun:
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.command(name="8ball")
+    async def magicball(self):
+        """The magical 8ball holds all the answers."""
+        await self.bot.say(random.choice(lists.ball))
 
     @commands.command()
     async def meme(self, meme_name : str, meme_top="_", meme_bottom="_"):
@@ -26,7 +32,7 @@ class Fun:
         """Show all the meme names"""
         await self.bot.say("all memes:\n`{0}`".format(", ".join(meme for meme in lists.memes)))
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, no_pm=True)
     async def dance(self, ctx):
         """Oh yeah, show those moves baby!"""
         dancer = random.choice(lists.dancers)
@@ -42,7 +48,7 @@ class Fun:
         """Tells you the day of the week."""
         await self.bot.say(lists.days[datetime.datetime.today().weekday()])
 
-    @commands.command(description="No friends? play hangman with a bot instead!", pass_context=True)
+    @commands.command(description="No friends? play hangman with a bot instead!", pass_context=True, no_pm=True)
     async def hangman(self, ctx):
         """Play a simple game of hangman.
         Win reward: 5 coins
